@@ -1,0 +1,35 @@
+# 🥦 NutritionApp
+
+A minimalistic, terminal-based nutrition tracker written in Python.  
+Track your daily macros, log realistic food servings, and get suggestions for what to eat next — all without needing a fancy UI.
+
+---
+
+## ✨ Features
+
+- ✅ Set and track daily macro goals (protein, carbs, fats)
+- ✅ Add foods with realistic quantities (e.g. 150g chicken breast, 2 eggs)
+- ✅ Automatically scale macros based on quantity
+- ✅ Save your eating history to a JSON file
+- ✅ Suggest foods you can still eat without exceeding your macros
+- ✅ Fuzzy food name matching (no need to type exact names)
+
+---
+
+## 📦 Files
+
+- `main.py` – Entry point, runs the tracker
+- `tracker.py` – Core logic for adding food, suggestions, saving/loading
+- `food.py` – `Food` class definition (holds macros per base quantity)
+- `eaten_foods.json` – Persistent daily log of consumed foods
+
+---
+
+## 🚀 How to Run
+
+Make sure you have Python 3.7+ installed.
+
+```bash
+git clone https://github.com/OkabiDor/NutritionApp.git
+cd NutritionApp
+python main.py
