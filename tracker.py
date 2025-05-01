@@ -1,6 +1,8 @@
 import difflib
 import json
 import datetime
+import tkinter as tk
+from tkinter import messagebox, ttk
 from food import Food
 
 
@@ -133,3 +135,6 @@ def empty_eaten_foods():
         global eaten_foods
         eaten_foods = []
         print("Eaten foods cleared.")
+
+
+
