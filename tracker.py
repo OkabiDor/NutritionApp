@@ -1,5 +1,6 @@
 import difflib
 import json
+import datetime
 from food import Food
 
 
@@ -102,7 +103,10 @@ def load_eaten_foods():
         with open('eaten_foods.json', 'r') as file:
             try:
                 data = json.load(file)
-                for item in data:
+                if data.get('date') != str(datetime.date.today()):
+                    print("Data is not from today. Starting with an empty list of eaten foods.")
+                    return
+                for item in data.get('foods', []):
                     food = Food(item['name'], item['protein'], item['carbs'], item['fats'], item['quantity'])
                     eaten_foods.append(food)
             except json.JSONDecodeError:
@@ -112,17 +116,20 @@ def load_eaten_foods():
 
 def save_eaten_foods():
     with open('eaten_foods.json', 'w') as file:
-        data = [
-            {'name': food.name, 'protein': food.protein, 'carbs': food.carbs, 'fats': food.fats, 'quantity': food.quantity}
-            for food in eaten_foods
-        ]
+        data = {
+                'date': str(datetime.date.today()),
+                'foods': [
+                    {'name': food.name, 'protein': food.protein, 'carbs': food.carbs, 'fats': food.fats, 'quantity': food.quantity}
+                    for food in eaten_foods
+                ]
+            }
         json.dump(data, file)
 
 def empty_eaten_foods():
     question = input("Do you want to clear the eaten foods? (yes/no): ")
     if question.lower() == 'yes':
         with open('eaten_foods.json', 'w') as file:
-            json.dump([], file)
-            global eaten_foods
-            eaten_foods = []
+            json.dump({'date': str(datetime.date.today()), 'foods': []}, file)
+        global eaten_foods
+        eaten_foods = []
         print("Eaten foods cleared.")
