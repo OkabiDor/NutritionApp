@@ -70,7 +70,6 @@ def print_remaining_macros():
         print(f"{food.name}: {food.protein}g protein, {food.carbs}g carbs, {food.fats}g fats")
 
 def suggest_foods():
-    print("\nSuggested foods to complete your macros:")
     consumed = {'protein': 0, 'carbs': 0, 'fats': 0}
     for food in eaten_foods:
         consumed['protein'] += food.protein
@@ -82,7 +81,7 @@ def suggest_foods():
         'carbs': daily_macros['carbs'] - consumed['carbs'],
         'fats': daily_macros['fats'] - consumed['fats'],
     }
-
+    suggestions = []
     for food in available_foods:
         max_multiplier = min(
             remaining['protein'] / food.protein if food.protein > 0 else float('inf'),
@@ -95,8 +94,9 @@ def suggest_foods():
 
         suggested_amount = max_multiplier * food.quantity
         unit = "unit" if food.quantity == 1 else "g"
-
-        print(f"- {food.name}: up to {suggested_amount:.0f}{unit} ({food.protein:.1f}P / {food.carbs:.1f}C / {food.fats:.1f}F per {unit})")
+        suggestion = f"{food.name}: up to {suggested_amount:.0f}{unit} ({food.protein:.1f}P / {food.carbs:.1f}C / {food.fats:.1f}F per {unit})"
+        suggestions.append(suggestion)
+    return suggestions
 
 
 

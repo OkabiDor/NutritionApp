@@ -3,42 +3,22 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 root = tk.Tk()
+macro_suggestion_frame = tk.Frame(root)
+macro_suggestion_frame.pack(pady=10, fill=tk.X)
+left_frame = tk.Frame(macro_suggestion_frame)
+left_frame.pack(side=tk.LEFT, padx=10, fill=tk.BOTH, expand=True)
+right_frame = tk.Frame(macro_suggestion_frame)
+right_frame.pack(side=tk.RIGHT, padx=10, fill=tk.BOTH, expand=True)
+suggest_label = tk.Label(right_frame, text = "Suggested Foods:\n")
+suggest_label.pack()
 root.title("Macro Tracker")
 root.geometry("500x600")
 # --- Basic UI Elements ---
 
-# Dropdown: choose a food
-food_names = [food.name for food in available_foods]
-selected_food = tk.StringVar()
-food_dropdown = ttk.Combobox(root, textvariable=selected_food, values=food_names)
-food_dropdown.pack(pady=5)
-food_dropdown.set("Choose a food")
-result_label = tk.Label(root, text="Remaining Macros:\n"
-                              f"Protein: {daily_macros['protein']:.1f}\n"
-                              f"Carbs: {daily_macros['carbs']:.1f}\n"
-                              f"Fats: {daily_macros['fats']:.1f}")
-result_label.pack(pady=10)
-eaten_foods_ui = ttk.Treeview(root, columns=("Food","Quantity", "Protein", "Carbs", "Fats"), show='headings')
-eaten_foods_ui.heading("Food", text="Food")
-eaten_foods_ui.column("Food", width=150, stretch=False)
-eaten_foods_ui.heading("Quantity", text="Quantity")
-eaten_foods_ui.column("Quantity", width=80, stretch=False)
-eaten_foods_ui.heading("Protein", text="Protein")
-eaten_foods_ui.column("Protein", width=80, stretch=False)
-eaten_foods_ui.heading("Carbs", text="Carbs")
-eaten_foods_ui.column("Carbs", width=80, stretch=False)
-eaten_foods_ui.heading("Fats", text="Fats")
-eaten_foods_ui.column("Fats", width=80, stretch=False)
-eaten_foods_ui.pack(pady=10, fill=tk.X)
-
-# Entry: quantity
-quantity_entry = tk.Entry(root)
-quantity_entry.pack(pady=5)
-quantity_entry.insert(0, "1")
-if messagebox.askyesno(title= "Load Data", message="Do you want to load previous data?"):
-    load_eaten_foods()
-    # Function to save eaten foods to a file
-
+def update_suggestions_ui():
+    suggestions = suggest_foods()
+    text = "Suggested Foods:\n" + "\n".join(suggestions) if suggestions else "No suggestions available."
+    suggest_label.config(text=text)
 
 def update_ui():
     consumed = {'protein': 0, 'carbs': 0, 'fats': 0}
@@ -60,7 +40,46 @@ def update_ui():
     eaten_foods_ui.delete(*eaten_foods_ui.get_children())
     for food in eaten_foods:
         eaten_foods_ui.insert("", "end", values=(food.name, food.quantity, food.protein, food.carbs, food.fats))
+    update_suggestions_ui()
     
+
+
+# Dropdown: choose a food
+food_names = [food.name for food in available_foods]
+selected_food = tk.StringVar()
+food_dropdown = ttk.Combobox(root, textvariable=selected_food, values=food_names)
+food_dropdown.pack(pady=5)
+food_dropdown.set("Choose a food")
+result_label = tk.Label(left_frame, text="Remaining Macros:\n"
+                              f"Protein: {daily_macros['protein']:.1f}\n"
+                              f"Carbs: {daily_macros['carbs']:.1f}\n"
+                              f"Fats: {daily_macros['fats']:.1f}")
+result_label.pack()
+suggest_food = tk.Label(right_frame, text="No suggestions yet.")
+suggest_food.pack()
+eaten_foods_ui = ttk.Treeview(root, columns=("Food","Quantity", "Protein", "Carbs", "Fats"), show='headings')
+eaten_foods_ui.heading("Food", text="Food")
+eaten_foods_ui.column("Food", width=150, stretch=False)
+eaten_foods_ui.heading("Quantity", text="Quantity")
+eaten_foods_ui.column("Quantity", width=80, stretch=False)
+eaten_foods_ui.heading("Protein", text="Protein")
+eaten_foods_ui.column("Protein", width=80, stretch=False)
+eaten_foods_ui.heading("Carbs", text="Carbs")
+eaten_foods_ui.column("Carbs", width=80, stretch=False)
+eaten_foods_ui.heading("Fats", text="Fats")
+eaten_foods_ui.column("Fats", width=80, stretch=False)
+eaten_foods_ui.pack(pady=10, fill=tk.X)
+
+# Entry: quantity
+quantity_entry = tk.Entry(root)
+quantity_entry.pack(pady=5)
+quantity_entry.insert(0, "1")
+if messagebox.askyesno(title= "Load Data", message="Do you want to load previous data?"):
+    load_eaten_foods()
+    update_ui()
+    # Function to save eaten foods to a file
+
+
 
 
 # Button: add food
