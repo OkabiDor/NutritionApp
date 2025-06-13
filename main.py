@@ -37,6 +37,7 @@ quantity_entry.pack(pady=5)
 quantity_entry.insert(0, "1")
 if messagebox.askyesno(title= "Load Data", message="Do you want to load previous data?"):
     load_eaten_foods()
+    # Function to save eaten foods to a file
 
 
 def update_ui():
