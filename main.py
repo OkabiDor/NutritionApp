@@ -2,7 +2,6 @@ from tracker import *
 import tkinter as tk
 from tkinter import messagebox, ttk
 import os
-print(os.environ.get("GEMINI_API_KEY"))
 root = tk.Tk()
 macro_suggestion_frame = tk.Frame(root)
 macro_suggestion_frame.pack(pady=10, fill=tk.X)
@@ -22,25 +21,28 @@ def update_suggestions_ui():
     suggest_label.config(text=text)
 
 def update_ui():
-    consumed = {'protein': 0, 'carbs': 0, 'fats': 0}
+    consumed = {'protein': 0, 'carbs': 0, 'fats': 0, 'calories': 0}
     for food in eaten_foods:
         consumed['protein'] += food.protein
         consumed['carbs'] += food.carbs
         consumed['fats'] += food.fats
+        consumed['calories'] += food.calories
 
     remaining = {
         'protein': daily_macros['protein'] - consumed['protein'],
         'carbs': daily_macros['carbs'] - consumed['carbs'],
-        'fats': daily_macros['fats'] - consumed['fats']
+        'fats': daily_macros['fats'] - consumed['fats'],
+        'calories': daily_macros['calories'] - consumed['calories']
     }
 
     result_label.config(text=f"Remaining Macros:\n"
                               f"Protein: {remaining['protein']:.1f}\n"
                               f"Carbs: {remaining['carbs']:.1f}\n"
-                              f"Fats: {remaining['fats']:.1f}")
+                              f"Fats: {remaining['fats']:.1f}\n"
+                              f"Calories: {remaining['calories']:.1f}")
     eaten_foods_ui.delete(*eaten_foods_ui.get_children())
     for food in eaten_foods:
-        eaten_foods_ui.insert("", "end", values=(food.name, food.quantity, food.protein, food.carbs, food.fats))
+        eaten_foods_ui.insert("", "end", values=(food.name, food.quantity, food.protein, food.carbs, food.fats, food.calories))
     update_suggestions_ui()
     
 
@@ -58,7 +60,7 @@ result_label = tk.Label(left_frame, text="Remaining Macros:\n"
 result_label.pack()
 suggest_food = tk.Label(right_frame, text="No suggestions yet.")
 suggest_food.pack()
-eaten_foods_ui = ttk.Treeview(root, columns=("Food","Quantity", "Protein", "Carbs", "Fats"), show='headings')
+eaten_foods_ui = ttk.Treeview(root, columns=("Food","Quantity", "Protein", "Carbs", "Fats", "Calories"), show='headings')
 eaten_foods_ui.heading("Food", text="Food")
 eaten_foods_ui.column("Food", width=150, stretch=False)
 eaten_foods_ui.heading("Quantity", text="Quantity")
@@ -69,6 +71,8 @@ eaten_foods_ui.heading("Carbs", text="Carbs")
 eaten_foods_ui.column("Carbs", width=80, stretch=False)
 eaten_foods_ui.heading("Fats", text="Fats")
 eaten_foods_ui.column("Fats", width=80, stretch=False)
+eaten_foods_ui.heading("Calories", text="Calories")
+eaten_foods_ui.column("Calories", width=80, stretch=False)
 eaten_foods_ui.pack(pady=10, fill=tk.X)
 
 # Entry: quantity
@@ -102,6 +106,7 @@ def add_food_gui():
                 food.protein * multiplier,
                 food.carbs * multiplier,
                 food.fats * multiplier,
+                food.calories * multiplier,
                 quantity
             ))
             save_eaten_foods()

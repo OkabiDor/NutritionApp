@@ -12,7 +12,8 @@ from google import genai
 daily_macros = {
     'protein': 150,
     'carbs': 200,
-    'fats': 150
+    'fats': 150,
+    'calories': 2500
 }
 
 
@@ -26,11 +27,11 @@ def get_float(prompt):
             print("Invalid input. Please enter a number.")
 
 available_foods = [
-    Food("Chicken breast", 30, 0, 3, 100),
-    Food("Rice (100g)", 2, 28, 0, 100),
-    Food("Almonds (30g)", 6, 6, 15, 30),
-    Food("Egg", 6, 0, 5, 1),
-    Food("Banana", 1, 23, 0, 1),
+    Food("Chicken breast", 30, 0, 3, 165, 100),
+    Food("Rice (100g)", 2, 28, 0, 130, 100),
+    Food("Almonds (30g)", 6, 6, 15, 173, 30),
+    Food("Egg", 6, 0, 5, 70, 1),
+    Food("Banana", 1, 23, 0, 105, 1),
 ]
 
 
@@ -49,9 +50,10 @@ def add_food():
                 real_ammount_protein = foods.protein * multiplier
                 real_ammount_carbs = foods.carbs * multiplier
                 real_ammount_fats = foods.fats * multiplier
-                print(f"-> Added: {foods.name} ({real_ammount_protein:.1f}P / {real_ammount_carbs:.1f}C / {real_ammount_fats:.1f}F)")
+                real_amount_calories = foods.calories * multiplier  
+                print(f"-> Added: {foods.name} ({real_ammount_protein:.1f}P / {real_ammount_carbs:.1f}C / {real_ammount_fats:.1f}F, {real_amount_calories:.1f} Cal)\n")
                 eaten_foods.append(
-                    Food(foods.name, real_ammount_protein, real_ammount_carbs, real_ammount_fats, quantity)
+                    Food(foods.name, real_ammount_protein, real_ammount_carbs, real_ammount_fats, real_amount_calories, quantity)
                 )
 
 
@@ -61,6 +63,7 @@ def print_remaining_macros():
         consumed['protein'] += food.protein
         consumed['carbs'] += food.carbs
         consumed['fats'] += food.fats
+        consumed['calories'] = food.calories
     print("\nRemaining macros:")
     for macro in daily_macros:
         remaining = daily_macros[macro] - consumed[macro]
@@ -70,28 +73,32 @@ def print_remaining_macros():
 
     print("\nEaten foods:")
     for food in eaten_foods:
-        print(f"{food.name}: {food.protein}g protein, {food.carbs}g carbs, {food.fats}g fats")
+        print(f"{food.name}: {food.protein}g protein, {food.carbs}g carbs, {food.fats}g fats, {food.calories} calories, Quantity: {food.quantity}")
 
 def suggest_foods():
-    consumed = {'protein': 0, 'carbs': 0, 'fats': 0}
+    consumed = {'protein': 0, 'carbs': 0, 'fats': 0, 'calories': 0}
     for food in eaten_foods:
         consumed['protein'] += food.protein
         consumed['carbs'] += food.carbs
         consumed['fats'] += food.fats
-    os.environ["GEMINI_API_KEY"] = "add_your_api_key_here"
-    print(os.getenv("GEMINI_API_KEY"))
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+        consumed['calories'] = food.calories
+    my_api_key = os.getenv("GEMINI_API_KEY")
+    client = genai.Client(api_key=my_api_key)
     response = client.models.generate_content(
         model = "gemini-2.5-flash",
-        contents = "Suggest some meals to meet my remaining macros." \
+        contents = "As a professional nutritionist suggest some meals to meet my remaining macros." \
         " My daily macros are: " + str(daily_macros) + \
-        " I have already consumed: " + str(consumed)
+        " I have already consumed: " + str(consumed) + "." \
+        " Give 2 to 3 suggestions, of a dish that would fit best as the NEXT meal to eat." \
+        " Provide the recipe if needed, but focus on the macros." \
+        " Use the current time of the day to provide a meal that is appropriate (breakfast, lunch, dinner, snack)." \
     )
     print(response.text)
     remaining = {
         'protein': daily_macros['protein'] - consumed['protein'],
         'carbs': daily_macros['carbs'] - consumed['carbs'],
         'fats': daily_macros['fats'] - consumed['fats'],
+        'calories': daily_macros['calories'] - consumed['calories'],
     }
     suggestions = []
     for food in available_foods:
@@ -99,6 +106,7 @@ def suggest_foods():
             remaining['protein'] / food.protein if food.protein > 0 else float('inf'),
             remaining['carbs'] / food.carbs if food.carbs > 0 else float('inf'),
             remaining['fats'] / food.fats if food.fats > 0 else float('inf'),
+            remaining['calories'] / food.calories if food.calories > 0 else float('inf'),
         )
 
         if max_multiplier <= 0:
@@ -106,7 +114,7 @@ def suggest_foods():
 
         suggested_amount = max_multiplier * food.quantity
         unit = "unit" if food.quantity == 1 else "g"
-        suggestion = f"{food.name}: up to {suggested_amount:.0f}{unit} ({food.protein:.1f}P / {food.carbs:.1f}C / {food.fats:.1f}F per {unit})"
+        suggestion = f"{food.name}: up to {suggested_amount:.0f}{unit} ({food.protein:.1f}P / {food.carbs:.1f}C / {food.fats:.1f}F / {food.calories:.1F}Cal per {unit})"
         suggestions.append(suggestion)
     return suggestions
 
@@ -121,7 +129,7 @@ def load_eaten_foods():
                     print("Data is not from today. Starting with an empty list of eaten foods.")
                     return
                 for item in data.get('foods', []):
-                    food = Food(item['name'], item['protein'], item['carbs'], item['fats'], item['quantity'])
+                    food = Food(item['name'], item['protein'], item['carbs'], item['fats'], item['calories'], item['quantity'])
                     eaten_foods.append(food)
             except json.JSONDecodeError:
                 print("Error decoding JSON. Starting with an empty list of eaten foods.")
@@ -133,7 +141,7 @@ def save_eaten_foods():
         data = {
                 'date': str(datetime.date.today()),
                 'foods': [
-                    {'name': food.name, 'protein': food.protein, 'carbs': food.carbs, 'fats': food.fats, 'quantity': food.quantity}
+                    {'name': food.name, 'protein': food.protein, 'carbs': food.carbs, 'fats': food.fats, 'calories' :food.calories, 'quantity': food.quantity}
                     for food in eaten_foods
                 ]
             }
