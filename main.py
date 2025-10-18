@@ -1,7 +1,8 @@
 from tracker import *
 import tkinter as tk
 from tkinter import messagebox, ttk
-
+import os
+print(os.environ.get("GEMINI_API_KEY"))
 root = tk.Tk()
 macro_suggestion_frame = tk.Frame(root)
 macro_suggestion_frame.pack(pady=10, fill=tk.X)

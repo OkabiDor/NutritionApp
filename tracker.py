@@ -78,15 +78,16 @@ def suggest_foods():
         consumed['protein'] += food.protein
         consumed['carbs'] += food.carbs
         consumed['fats'] += food.fats
+    os.environ["GEMINI_API_KEY"] = "add_your_api_key_here"
     print(os.getenv("GEMINI_API_KEY"))
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     response = client.models.generate_content(
         model = "gemini-2.5-flash",
-        input = "Suggest some meals to meet my remaining macros." \
+        contents = "Suggest some meals to meet my remaining macros." \
         " My daily macros are: " + str(daily_macros) + \
         " I have already consumed: " + str(consumed)
     )
-    print(response.output_text)
+    print(response.text)
     remaining = {
         'protein': daily_macros['protein'] - consumed['protein'],
         'carbs': daily_macros['carbs'] - consumed['carbs'],
