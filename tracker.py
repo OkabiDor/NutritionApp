@@ -6,6 +6,7 @@ from tkinter import messagebox, ttk
 from food import Food
 from openai import OpenAI
 import os
+from google import genai
 
 
 daily_macros = {
@@ -77,14 +78,15 @@ def suggest_foods():
         consumed['protein'] += food.protein
         consumed['carbs'] += food.carbs
         consumed['fats'] += food.fats
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
-        model = "gpt-3.5-turbo",
-        prompt = "Suggest some meals to meet my remaining macros." \
+    print(os.getenv("GEMINI_API_KEY"))
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    response = client.models.generate_content(
+        model = "gemini-2.5-flash",
+        input = "Suggest some meals to meet my remaining macros." \
         " My daily macros are: " + str(daily_macros) + \
         " I have already consumed: " + str(consumed)
     )
-    print(response.choices[0].text.strip())
+    print(response.output_text)
     remaining = {
         'protein': daily_macros['protein'] - consumed['protein'],
         'carbs': daily_macros['carbs'] - consumed['carbs'],
